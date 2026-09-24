@@ -37,8 +37,15 @@ Initial release.
   claim: every corpus stays above 80%.
 - A second model (`gpt-oss:20b`) ran the same battery with surviving
   chains: attack-pass 88.4–95.3%, same threshold result.
-- Multi-model validation in progress (`deepseek-v4.1-flash`,
-  `kimi-k2.7-code`, `qwen3.5:397b`).
+- Multi-model sweep complete (2026-09-24): `deepseek-v4.1-flash`
+  (97.7/95.3/**76.7**/83.7), `kimi-k2.7-code` (81.4/83.7/**74.4**/86.0),
+  `qwen3.5:397b` (88.4/88.4/93.0/90.7) — attack-pass per corpus
+  (HotpotQA/SQuAD2/EU AI Act/NIST). 18/20 model/corpus combinations
+  clear the 80% threshold; the 2 failures are both on the EU AI Act
+  corpus, proving the threshold discriminates rather than rubber-stamps.
+  Every chain verified intact (49 records each); per-model evidence
+  isolated in model-specific subdirectories. Release decisions do not
+  transfer across models.
 - Indirect injection (poisoned chunks) confirmed as the weakest family
   across corpora and backends.
 - CI workflow file removed from the tree (automation token lacks the
