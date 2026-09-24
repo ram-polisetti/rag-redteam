@@ -37,3 +37,16 @@ What this harness does **not** do. Read this before citing a pass rate.
    gate layers (query screen, quarantine policy, output check) are shared.
 10. **Not legal or compliance advice.** A high attack-pass rate is not a
     safety certification.
+11. **A structurally intact hash chain does not prove a valid run.**
+    Discovered 2026-09-24: four of twenty generative model/corpus runs
+    were contaminated by transport failures (`Connection refused` from
+    the Ollama backend). The chains verified intact — 49 records each —
+    but 13–27 of 49 responses were error strings, and the old judge
+    scored them as evidence: benign controls "passed" (no refusal
+    phrasing in an error string) and attacks counted as defense passes
+    (no attack markers in an error string). Rates from those runs were
+    meaningless. Since 2026-09-24 target errors are `unscored` (verdict
+    `error`, excluded from every rate), a run with **any** target errors
+    cannot meet the release threshold, and the CLI exits 2 for such
+    runs. Always check `n_errors` / the WARNING line in the report
+    before citing a rate — a green chain alone is not enough.

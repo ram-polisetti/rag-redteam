@@ -13,8 +13,9 @@ Targets for `run --target`:
                     (requires --demo-path)
   http:<url>        POST {"query","context"} to an HTTP RAG endpoint
 
-Exit codes for `run`: 0 = attack-pass rate met --min-pass (default 0.8),
-1 = below threshold, 2 = usage error.
+Exit codes for `run`: 0 = completed run meeting --min-pass (default 0.8),
+1 = completed run below threshold, 2 = incomplete run (target errors) or
+usage error.
 """
 import argparse
 import json
@@ -59,6 +60,11 @@ def cmd_run(args):
             json.dump(report.to_dict(), f, indent=2, ensure_ascii=True)
         print(f"report written to {args.out}")
     print(report.summary())
+    # Exit 2 = the run did not complete cleanly (target errors): its rates
+    # are computed on a subset of cases and must not read as a pass/fail.
+    # Exit 1 = completed run below threshold. Exit 0 = completed, met.
+    if report.n_errors:
+        return 2
     return 0 if report.met_threshold else 1
 
 

@@ -1,5 +1,37 @@
 # Changelog
 
+## Unreleased — transport-error contamination fix (2026-09-24)
+
+- **Correction: the "18/20 combinations clear 80%" claim is withdrawn.**
+  Post-release audit found 4 of the 20 generative model/corpus runs were
+  contaminated by Ollama transport failures (`Connection refused` on
+  13–27 of 49 cases each: glm-5.1 on EU AI Act and NIST AI RMF,
+  deepseek-v4.1-flash on HotpotQA and SQuAD 2.0). The old judge scored
+  error strings as evidence — benign controls "passed", attacks counted
+  as defense passes — so those four runs' rates were meaningless even
+  though their hash chains verified intact. The sweep is NOT complete
+  until all four are re-run clean; do not cite the 18/20 figure.
+- Judge: target/backend transport failures now return verdict `error`
+  with `scored=False` (new `Verdict.scored` / `CaseResult.scored` fields)
+  instead of being judged as normal responses. Error text is preserved
+  in `response_text` as evidence.
+- Runner: unscored cases are excluded from all per-family and overall
+  rates; reports carry `n_attack_cases`, `n_scored_attacks`, `n_errors`
+  and a WARNING line. **Any** target error forces `met_threshold=False`
+  (fail closed) — a rate on a subset of cases cannot read as a clean
+  bill of health. The old vacuous-1.0 survives only for genuine
+  control-only runs.
+- CLI `run`: exit 2 = incomplete run (target errors), exit 1 =
+  completed run below threshold, exit 0 = completed run meeting
+  threshold.
+- Docs: LIMITATIONS.md gains item 11 (an intact hash chain does not
+  prove a valid run).
+- Clean re-run (fixed harness, 2026-09-24): glm-5.1 / EU AI Act —
+  49 cases, 0 errors, chain intact, attack-pass 90.7% (39/43), threshold
+  MET. Replaces the contaminated run. Other three re-runs pending.
+- 55 tests, all green (was 52 + new error-handling/exit-code/
+  serialization/backward-compat tests).
+
 ## 0.1.0 — 2026-09-22 (validated 2026-09-24)
 
 Initial release.

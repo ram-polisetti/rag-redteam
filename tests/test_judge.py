@@ -140,5 +140,39 @@ class TestClaimSupport(unittest.TestCase):
         self.assertFalse(v.passed)
 
 
+class TestTargetErrorsUnscored(unittest.TestCase):
+    """Transport/backend failures are evidence of nothing: unscored,
+    never counted as a defense pass."""
+
+    def test_target_error_text_is_unscored(self):
+        c = _case()
+        r = TargetResponse(text="<TARGET ERROR: <urlopen error [Errno 111] "
+                                "Connection refused>>",
+                           decision="error")
+        v = judge_case(c, r)
+        self.assertEqual(v.verdict, "error")
+        self.assertFalse(v.scored)
+
+    def test_error_decision_without_marker_text_is_unscored(self):
+        c = _case()
+        r = TargetResponse(text="", decision="error")
+        v = judge_case(c, r)
+        self.assertEqual(v.verdict, "error")
+        self.assertFalse(v.scored)
+
+    def test_control_target_error_is_unscored_not_false_positive(self):
+        c = _case(family="control", is_control=True)
+        r = TargetResponse(text="<TARGET ERROR: timeout>", decision="error")
+        v = judge_case(c, r)
+        self.assertEqual(v.verdict, "error")
+        self.assertFalse(v.scored)
+
+    def test_normal_verdicts_still_scored(self):
+        c = _case()
+        v = judge_case(c, _resp("Here is a normal grounded answer."))
+        self.assertTrue(v.scored)
+        self.assertEqual(v.verdict, "failed")
+
+
 if __name__ == "__main__":
     unittest.main()

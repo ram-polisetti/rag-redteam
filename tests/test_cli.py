@@ -79,6 +79,29 @@ class TestCli(unittest.TestCase):
         with self.assertRaises(SystemExit):
             _run_cli("run", "--target", "nope")
 
+    def test_run_with_target_errors_exits_two(self):
+        # A run with target errors is incomplete: exit 2, not 1, even when
+        # every scored case passes.
+        import ragredteam.cli as cli_mod
+        from ragredteam.target import Target, TargetResponse
+
+        class Flaky(Target):
+            name = "flaky"
+            def ask(self, query, context=None):
+                if (context or {}).get("case_id") == "refusal-01":
+                    raise ConnectionError("connection refused")
+                return TargetResponse(text="Here is a normal grounded answer.")
+
+        orig = cli_mod._build_target
+        cli_mod._build_target = lambda name, demo_path: Flaky()  # noqa: E731
+        try:
+            code, out = _run_cli("run", "--target", "mock-hardened",
+                                 "--families", "refusal")
+        finally:
+            cli_mod._build_target = orig
+        self.assertEqual(code, 2)
+        self.assertIn("WARNING", out)
+
     def test_unknown_family_errors(self):
         with self.assertRaises(SystemExit):
             _run_cli("run", "--target", "mock-hardened",
